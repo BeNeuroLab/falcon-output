@@ -120,10 +120,9 @@ void StreamPlugin::process(AudioSampleBuffer& buffer)
 {
     if (!socket)
         createSocket();
-    
+
     uint64_t firstTs = getTimestamp(0);
     float sampleRate;
-
     // Simplified sample rate detection (could check channel type or report
     // sampling rate of all channels separately in case they differ)
     if (dataChannelArray.size() > 0) 
@@ -134,6 +133,32 @@ void StreamPlugin::process(AudioSampleBuffer& buffer)
     {   // this should never run - if no data channels, then no data...
         sampleRate = CoreServices::getGlobalSampleRate();
     }
+
+    int ch_count = getTotalDataChannels();
+    int sample_count = (int)getNumSamples(0);
+    float* sampleRates = new float[ch_count];
+    const float** ptrs = buffer.getArrayOfReadPointers();
+    //const float** AP_channel_ptrs = new const float*[ch_count / 2];
+    /*for (int i = 0; i < ch_count / 2; i++) {
+        AP_channel_ptrs[i] = new const float[sample_count];
+    }*/
+    // AudioSampleBuffer newBuffer = AudioBuffer(ch_count, getNumSamples(0));
+
+    std::cout << "CoreServices::getGlobalSampleRate() " << CoreServices::getGlobalSampleRate() << std::endl;
+    std::cout << "getTotalDataChannels() " << getTotalDataChannels() << std::endl;
+    std::cout << "buffer.getNumChannels()" << buffer.getNumChannels() << std::endl;
+    int x = 0;
+    for (int i = 0; i < ch_count; i++) {
+        sampleRates[i] = dataChannelArray[i]->getSampleRate();
+        if (dataChannelArray[i]->getSampleRate() == sampleRate) {
+            //AP_channel_ptrs[x] = ptrs[i];
+            x++;
+        }
+    }
+
+    std::cout << "x " << x << std::endl;
+
+    // buffer.setDataToReferTo(AP_channel_ptrs, ch_count / 2, sample_count);
 
     if(getNumSamples(0) > 0){
         sendData(buffer, getNumSamples(0), firstTs, (int)sampleRate);
