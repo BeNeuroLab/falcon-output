@@ -1,4 +1,6 @@
-# Files and folders to ignore
+# Files and folder
+.vscode
+.vs
 
 # 1. intermediate files
 *.o

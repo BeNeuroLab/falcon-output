@@ -24,6 +24,9 @@
 
 
 #include "StreamPlugin.h"
+#include <iostream>
+#include <chrono>
+#include <ctime>
 
 StreamPlugin::StreamPlugin()
     : GenericProcessor("Falcon Output"), flatBuilder(1024)
@@ -142,26 +145,37 @@ void StreamPlugin::process(AudioSampleBuffer& buffer)
     /*for (int i = 0; i < ch_count / 2; i++) {
         AP_channel_ptrs[i] = new const float[sample_count];
     }*/
-    // AudioSampleBuffer newBuffer = AudioBuffer(ch_count, getNumSamples(0));
+    AudioSampleBuffer newBuffer = AudioSampleBuffer(ch_count / 2, sample_count);
 
-    std::cout << "CoreServices::getGlobalSampleRate() " << CoreServices::getGlobalSampleRate() << std::endl;
-    std::cout << "getTotalDataChannels() " << getTotalDataChannels() << std::endl;
-    std::cout << "buffer.getNumChannels()" << buffer.getNumChannels() << std::endl;
+    // std::cout << "CoreServices::getGlobalSampleRate() " << CoreServices::getGlobalSampleRate() << std::endl;
+    // std::cout << "getTotalDataChannels() " << getTotalDataChannels() << std::endl;
+    // std::cout << "buffer.getNumChannels()" << buffer.getNumChannels() << std::endl;
     int x = 0;
     for (int i = 0; i < ch_count; i++) {
         sampleRates[i] = dataChannelArray[i]->getSampleRate();
         if (dataChannelArray[i]->getSampleRate() == sampleRate) {
             //AP_channel_ptrs[x] = ptrs[i];
+            newBuffer.copyFrom(x, 0, buffer, i, 0, sample_count);
             x++;
         }
     }
 
-    std::cout << "x " << x << std::endl;
+    // std::cout << "x " << x << std::endl;
 
     // buffer.setDataToReferTo(AP_channel_ptrs, ch_count / 2, sample_count);
-
+    // std::cout << "getNumSamples(0)" << getNumSamples(0) << std::endl;
+    // std::cout << "buffer.getNumSamples()" << buffer.getNumSamples() << std::endl;
     if(getNumSamples(0) > 0){
-        sendData(buffer, getNumSamples(0), firstTs, (int)sampleRate);
+        sendData(newBuffer, getNumSamples(0), firstTs, (int)sampleRate);
+    }
+    // std::cout << "\n\n" << x << std::endl;
+    if(1) {
+        // https://stackoverflow.com/questions/997946/how-to-get-current-time-and-date-in-c 
+        std::cout << "messageId: " << messageNumber << std::endl;
+        long long x = 1000354800000;
+        long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+
+        std::cout << "tic: " << microseconds - x << "\n" << std::endl;
     }
 }
 
